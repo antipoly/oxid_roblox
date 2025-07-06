@@ -1,7 +1,7 @@
 use crate::util::{
     api_helper,
     paging::PageIterator,
-    responses::{CountResponse, CurrencyResponse, UserGroupRolesResponse, UsernameHistoryResponse},
+    responses::{ApiArrayResponse, CountResponse, CurrencyResponse, UserGroupRolesResponse, UsernameHistoryResponse},
     ResultExtensions, RobloxResult,
 };
 use async_trait::async_trait;
@@ -85,7 +85,8 @@ pub trait User {
         ),
         None
       ).await
-      .map_async(api_helper::deserialize_body::<Vec<UserGroupRolesResponse>>)
+      .map_async(api_helper::deserialize_body::<ApiArrayResponse<UserGroupRolesResponse>>)
       .await
+      .map(|data| data.data)
     }
 }

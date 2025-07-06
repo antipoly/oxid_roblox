@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 
-use crate::models::{GroupRole, Presence, SkinnyGroup, SkinnyRole};
+use crate::models::{GroupRole, Presence, SkinnyGroupWithMemberCount, SkinnyRole};
 
 use super::{parsers::parse_iso8601_date, ApiError};
 
@@ -26,9 +26,9 @@ pub struct GroupRolesResponse {
     pub roles: Vec<GroupRole>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct UserGroupRolesResponse {
-    pub group: SkinnyGroup,
+    pub group: SkinnyGroupWithMemberCount,
     pub role: SkinnyRole
 }
 
