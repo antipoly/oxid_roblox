@@ -1,6 +1,7 @@
 use crate::derives::GroupDerive;
+use serde::Deserialize;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct SkinnyGroup {
     pub id: i64,
     pub name: String,
