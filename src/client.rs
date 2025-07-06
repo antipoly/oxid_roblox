@@ -36,6 +36,7 @@ pub fn search_users(
             keyword
         ),
         identity_mapper,
+        None
     )
 }
 
@@ -59,9 +60,9 @@ pub fn base_asset(asset_id: i64) -> BaseAsset {
     BaseAsset { id: asset_id }
 }
 
-pub async fn authenticated_user() -> SkinnyUser {
+pub async fn authenticated_user(cookie: Option<&str>) -> SkinnyUser {
     api_helper::deserialize_body(
-        api_helper::get("https://users.roblox.com/v1/users/authenticated".to_owned())
+        api_helper::get("https://users.roblox.com/v1/users/authenticated".to_owned(), cookie)
             .await
             .unwrap(),
     )
@@ -71,6 +72,7 @@ pub async fn authenticated_user() -> SkinnyUser {
 pub async fn users_from_ids(
     user_ids: Vec<i64>,
     exclude_banned_users: bool,
+    cookie: Option<&str>,
 ) -> RobloxResult<Vec<SkinnyUser>> {
     api_helper::post(
         "https://users.roblox.com/v1/users".to_owned(),
@@ -78,6 +80,7 @@ pub async fn users_from_ids(
             "userIds": user_ids,
             "excludeBannedUsers": exclude_banned_users
         }),
+        cookie
     )
     .await
     .map_async(api_helper::deserialize_body::<ApiArrayResponse<SkinnyUser>>)
@@ -88,6 +91,7 @@ pub async fn users_from_ids(
 pub async fn users_from_usernames(
     usernames: Vec<&str>,
     exclude_banned_users: bool,
+    cookie: Option<&str>,
 ) -> RobloxResult<Vec<SkinnyUser>> {
     api_helper::post(
         "https://users.roblox.com/v1/usernames/users".to_owned(),
@@ -95,6 +99,7 @@ pub async fn users_from_usernames(
             "usernames": usernames,
             "excludeBannedUsers": exclude_banned_users
         }),
+        cookie
     )
     .await
     .map_async(api_helper::deserialize_body::<ApiArrayResponse<SkinnyUser>>)
@@ -102,12 +107,13 @@ pub async fn users_from_usernames(
     .map(|data| data.data)
 }
 
-pub async fn user_presences_from_ids(user_ids: Vec<i64>) -> RobloxResult<Vec<Presence>> {
+pub async fn user_presences_from_ids(user_ids: Vec<i64>, cookie: Option<&str>) -> RobloxResult<Vec<Presence>> {
     api_helper::post(
         "https://presence.roblox.com/v1/presence/users".to_owned(),
         json!({
             "userIds": user_ids
         }),
+        cookie
     )
     .await
     .map_async(api_helper::deserialize_body::<UserPresencesResponse>)
@@ -115,94 +121,115 @@ pub async fn user_presences_from_ids(user_ids: Vec<i64>) -> RobloxResult<Vec<Pre
     .map(|data| data.user_presences)
 }
 
-pub async fn universes_from_ids(universe_ids: Vec<i64>) -> RobloxResult<Vec<Universe>> {
-    api_helper::get(format!(
-        "https://games.roblox.com/v1/games?universeIds={}",
-        ids_to_string(universe_ids)
-    ))
+pub async fn universes_from_ids(universe_ids: Vec<i64>, cookie: Option<&str>) -> RobloxResult<Vec<Universe>> {
+    api_helper::get(
+        format!(
+            "https://games.roblox.com/v1/games?universeIds={}",
+            ids_to_string(universe_ids)
+        ),
+        cookie
+    )
     .await
     .map_async(api_helper::deserialize_body::<ApiArrayResponse<Universe>>)
     .await
     .map(|data| data.data)
 }
 
-pub async fn places_from_ids(place_ids: Vec<i64>) -> RobloxResult<Vec<Place>> {
-    api_helper::get(format!(
-        "https://games.roblox.com/v1/games/multiget-place-details?placeIds={}",
-        ids_to_string(place_ids)
-    ))
+pub async fn places_from_ids(place_ids: Vec<i64>, cookie: Option<&str>) -> RobloxResult<Vec<Place>> {
+    api_helper::get(
+        format!(
+            "https://games.roblox.com/v1/games/multiget-place-details?placeIds={}",
+            ids_to_string(place_ids)
+        ),
+        cookie
+    )
     .await
     .map_async(api_helper::deserialize_body::<Vec<Place>>)
     .await
 }
 
-pub async fn plugins_from_ids(plugin_ids: Vec<i64>) -> RobloxResult<Vec<Plugin>> {
-    api_helper::get(format!(
-        "https://develop.roblox.com/v1/plugins?pluginIds={}",
-        ids_to_string(plugin_ids)
-    ))
+pub async fn plugins_from_ids(plugin_ids: Vec<i64>, cookie: Option<&str>) -> RobloxResult<Vec<Plugin>> {
+    api_helper::get(
+        format!(
+            "https://develop.roblox.com/v1/plugins?pluginIds={}",
+            ids_to_string(plugin_ids)
+        ),
+        cookie
+    )
     .await
     .map_async(api_helper::deserialize_body::<ApiArrayResponse<Plugin>>)
     .await
     .map(|data| data.data)
 }
 
-pub async fn user_from_id(user_id: i64) -> RobloxResult<User> {
-    api_helper::get(format!("https://users.roblox.com/v1/users/{}", user_id))
+pub async fn user_from_id(user_id: i64, cookie: Option<&str>) -> RobloxResult<User> {
+    api_helper::get(
+        format!("https://users.roblox.com/v1/users/{}", user_id),
+        cookie
+    )
         .await
         .map_async(api_helper::deserialize_body)
         .await
 }
 
-pub async fn user_from_username(username: &str) -> RobloxResult<Option<SkinnyUser>> {
-    users_from_usernames(vec![username], false)
+pub async fn user_from_username(username: &str, cookie: Option<&str>) -> RobloxResult<Option<SkinnyUser>> {
+    users_from_usernames(vec![username], false, cookie)
         .await
         .map(|users| users.first().cloned())
 }
 
-pub async fn group_from_id(group_id: i64) -> RobloxResult<Group> {
-    api_helper::get(format!("https://groups.roblox.com/v1/groups/{}", group_id))
+pub async fn group_from_id(group_id: i64, cookie: Option<&str>) -> RobloxResult<Group> {
+    api_helper::get(
+        format!("https://groups.roblox.com/v1/groups/{}", group_id),
+        cookie
+    )
         .await
         .map_async(api_helper::deserialize_body)
         .await
 }
 
-pub async fn user_presence_from_id(user_id: i64) -> RobloxResult<Option<Presence>> {
-    user_presences_from_ids(vec![user_id])
+pub async fn user_presence_from_id(user_id: i64, cookie: Option<&str>) -> RobloxResult<Option<Presence>> {
+    user_presences_from_ids(vec![user_id], cookie)
         .await
         .map(|presences| presences.first().cloned())
 }
 
-pub async fn universe_from_id(universe_id: i64) -> RobloxResult<Option<Universe>> {
-    universes_from_ids(vec![universe_id])
+pub async fn universe_from_id(universe_id: i64, cookie: Option<&str>) -> RobloxResult<Option<Universe>> {
+    universes_from_ids(vec![universe_id], cookie)
         .await
         .map(|universes| universes.first().cloned())
 }
 
-pub async fn place_from_id(place_id: i64) -> RobloxResult<Option<Place>> {
-    places_from_ids(vec![place_id])
+pub async fn place_from_id(place_id: i64, cookie: Option<&str>) -> RobloxResult<Option<Place>> {
+    places_from_ids(vec![place_id], cookie)
         .await
         .map(|places| places.first().cloned())
 }
 
-pub async fn asset_from_id(asset_id: i64) -> RobloxResult<EconomyAsset> {
-    api_helper::get(format!(
-        "https://economy.roblox.com/v2/assets/{}/details",
-        asset_id
-    ))
+pub async fn asset_from_id(asset_id: i64, cookie: Option<&str>) -> RobloxResult<EconomyAsset> {
+    api_helper::get(
+        format!(
+            "https://economy.roblox.com/v2/assets/{}/details",
+            asset_id
+        ),
+        cookie
+    )
     .await
     .map_async(api_helper::deserialize_body)
     .await
 }
 
-pub async fn plugin_from_id(plugin_id: i64) -> RobloxResult<Option<Plugin>> {
-    plugins_from_ids(vec![plugin_id])
+pub async fn plugin_from_id(plugin_id: i64, cookie: Option<&str>) -> RobloxResult<Option<Plugin>> {
+    plugins_from_ids(vec![plugin_id], cookie)
         .await
         .map(|plugins| plugins.first().cloned())
 }
 
-pub async fn badge_from_id(badge_id: i64) -> RobloxResult<Badge> {
-    api_helper::get(format!("https://badges.roblox.com/v1/badges/{}", badge_id))
+pub async fn badge_from_id(badge_id: i64, cookie: Option<&str>) -> RobloxResult<Badge> {
+    api_helper::get(
+        format!("https://badges.roblox.com/v1/badges/{}", badge_id),
+        cookie
+    )
         .await
         .map_async(api_helper::deserialize_body)
         .await

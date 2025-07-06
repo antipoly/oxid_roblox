@@ -131,7 +131,7 @@ impl<T: Clone> PagesIterator<T> {
     }
 }
 
-#[async_trait(?Send)]
+#[async_trait]
 trait BasePageIterator<T> {
     async fn next_page(&mut self) -> RobloxResult<Option<Vec<T>>>;
 }
@@ -147,6 +147,7 @@ where
     page_size: PageSize,
     iteration_started: bool,
     next_cursor: Option<String>,
+    cookie: Option<String>,
 }
 
 impl<T, U> PageIterator<T, U>
@@ -154,7 +155,7 @@ where
     T: serde::de::DeserializeOwned + 'static,
     U: Clone + 'static,
 {
-    pub fn new(url: String, mapper: fn(&T) -> U) -> Self {
+    pub fn new(url: String, mapper: fn(&T) -> U, cookie: Option<&str>) -> Self {
         Self {
             url,
             mapper,
@@ -162,6 +163,7 @@ where
             page_size: PageSize::Ten,
             iteration_started: false,
             next_cursor: None,
+            cookie: cookie.map(|s| s.to_string()),
         }
     }
 
@@ -180,7 +182,7 @@ where
     }
 }
 
-#[async_trait(?Send)]
+#[async_trait]
 impl<T, U> BasePageIterator<U> for PageIterator<T, U>
 where
     T: serde::de::DeserializeOwned,
@@ -194,13 +196,16 @@ where
         self.iteration_started = true;
 
         let page = api_helper::deserialize_body::<PageResponse<T>>(
-            api_helper::get(format!(
-                "{}?sortOrder={}&limit={}&cursor={}",
-                self.url,
-                self.sort_order.serialize(),
-                self.page_size.serialize(),
-                self.next_cursor.clone().unwrap_or(String::new())
-            ))
+            api_helper::get(
+                format!(
+                    "{}?sortOrder={}&limit={}&cursor={}",
+                    self.url,
+                    self.sort_order.serialize(),
+                    self.page_size.serialize(),
+                    self.next_cursor.clone().unwrap_or(String::new())
+                ),
+                self.cookie.as_deref(),
+            )
             .await?,
         )
         .await;

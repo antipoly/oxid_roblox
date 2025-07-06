@@ -20,15 +20,15 @@ pub struct Group {
     pub has_verified_badge: bool,
 }
 
-#[async_trait(?Send)]
+#[async_trait]
 impl GroupDerive for Group {
     fn id(&self) -> i64 {
         self.id
     }
 
     /// A version of [`GroupDerive::update_shout`] that updates the shout field of this group.
-    async fn update_shout(&mut self, message: String) -> RobloxResult<GroupShout> {
-        let shout = self.update_shout(message).await?;
+    async fn update_shout(&mut self, message: String, cookie: Option<&str>) -> RobloxResult<GroupShout> {
+        let shout = self.update_shout(message, cookie).await?;
         self.shout = Some(shout.clone());
         Ok(shout)
     }

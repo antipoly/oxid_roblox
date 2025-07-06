@@ -30,13 +30,31 @@ pub(crate) async fn deserialize_body<T: DeserializeOwned>(response: Response) ->
     response.json::<T>().await.unwrap()
 }
 
-async fn request(verb: Method, url: String, body: Option<Value>) -> RobloxResult<Response> {
+async fn request(
+    verb: Method,
+    url: String,
+    body: Option<Value>,
+    roblosecurity: Option<&str>,
+) -> RobloxResult<Response> {
     let arc_ref = HEADERS.clone();
-    let mut headers = arc_ref.lock().unwrap();
+    let headers_clone = {
+      let mut headers = arc_ref.lock().unwrap();
+
+      // Set the roblosecurity cookie if provided
+      if let Some(cookie) = roblosecurity {
+          headers.insert(
+              "Cookie",
+              format!(".ROBLOSECURITY={};", cookie).parse().unwrap(),
+          );
+      }
+
+      headers.clone()
+    };
+
 
     let response = HTTP_CLIENT
         .request(verb.clone(), url.clone())
-        .headers(headers.clone())
+        .headers(headers_clone)
         .json(&body)
         .send()
         .await
@@ -54,11 +72,16 @@ async fn request(verb: Method, url: String, body: Option<Value>) -> RobloxResult
             let errors = get_api_errors_from_response(response).await;
             // Some endpoints return 403 for domain logic errors, so only handle the x-csrf-token if this is a Token Validation Failed (code 0)
             if errors.iter().any(|error| error.code == 0) {
-                headers.insert("x-csrf-token", x_csrf_token.unwrap().to_owned());
+                let headers_clone = {
+                  let mut headers = arc_ref.lock().unwrap();
+                  headers.insert("x-csrf-token", x_csrf_token.unwrap().to_owned());
+
+                  headers.clone()
+                };
 
                 Ok(HTTP_CLIENT
                     .request(verb, url)
-                    .headers(headers.clone())
+                    .headers(headers_clone)
                     .json(&body)
                     .send()
                     .await
@@ -71,18 +94,18 @@ async fn request(verb: Method, url: String, body: Option<Value>) -> RobloxResult
     }
 }
 
-pub async fn get(url: String) -> RobloxResult<Response> {
-    request(Method::GET, url, None).await
+pub async fn get(url: String, roblosecurity: Option<&str>) -> RobloxResult<Response> {
+    request(Method::GET, url, None, roblosecurity).await
 }
 
-pub async fn delete(url: String) -> RobloxResult<Response> {
-    request(Method::DELETE, url, None).await
+pub async fn delete(url: String, roblosecurity: Option<&str>) -> RobloxResult<Response> {
+    request(Method::DELETE, url, None, roblosecurity).await
 }
 
-pub async fn post(url: String, body: Value) -> RobloxResult<Response> {
-    request(Method::POST, url, Some(body)).await
+pub async fn post(url: String, body: Value, roblosecurity: Option<&str>) -> RobloxResult<Response> {
+    request(Method::POST, url, Some(body), roblosecurity).await
 }
 
-pub async fn patch(url: String, body: Value) -> RobloxResult<Response> {
-    request(Method::PATCH, url, Some(body)).await
+pub async fn patch(url: String, body: Value, roblosecurity: Option<&str>) -> RobloxResult<Response> {
+    request(Method::PATCH, url, Some(body), roblosecurity).await
 }

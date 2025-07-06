@@ -35,12 +35,13 @@ pub struct Presence {
 }
 
 impl Presence {
-    pub async fn last_online(&self) -> RobloxResult<DateTime<Utc>> {
+    pub async fn last_online(&self, cookie: Option<&str>) -> RobloxResult<DateTime<Utc>> {
         api_helper::post(
             "https://presence.roblox.com/v1/presence/last-online".to_owned(),
             json!({
                 "userIds": [self.user_id]
             }),
+            cookie,
         )
         .await
         .map_async(api_helper::deserialize_body::<PresenceLastOnlineResponse>)

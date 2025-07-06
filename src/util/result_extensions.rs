@@ -1,19 +1,19 @@
 use async_trait::async_trait;
 
-#[async_trait(?Send)]
+#[async_trait]
 pub(crate) trait ResultExtensions<T, E> {
     async fn map_async<U, Future, Mapper>(self, mapper: Mapper) -> Result<U, E>
     where
-        Future: std::future::Future<Output = U> + Send,
-        Mapper: FnOnce(T) -> Future;
+        Future: std::future::Future<Output = U> + Send + 'async_trait,
+        Mapper: FnOnce(T) -> Future + Send;
 }
 
-#[async_trait(?Send)]
-impl<T, E> ResultExtensions<T, E> for Result<T, E> {
+#[async_trait]
+impl<T: Send, E: Send> ResultExtensions<T, E> for Result<T, E> {
     async fn map_async<U, Future, Mapper>(self, mapper: Mapper) -> Result<U, E>
     where
-        Future: std::future::Future<Output = U> + Send,
-        Mapper: FnOnce(T) -> Future,
+        Future: std::future::Future<Output = U> + Send + 'async_trait,
+        Mapper: FnOnce(T) -> Future + Send,
     {
         match self {
             Ok(value) => Ok(mapper(value).await),
