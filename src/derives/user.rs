@@ -1,8 +1,5 @@
 use crate::util::{
-    api_helper,
-    paging::PageIterator,
-    responses::{ApiArrayResponse, CountResponse, CurrencyResponse, UserGroupRolesResponse, UsernameHistoryResponse},
-    ResultExtensions, RobloxResult,
+    api_helper, paging::PageIterator, responses::{ApiArrayResponse, CountResponse, CurrencyResponse, UserGroupRolesResponse, UsernameHistoryResponse}, ApiError, ResultExtensions, RobloxResult
 };
 use async_trait::async_trait;
 
@@ -88,5 +85,19 @@ pub trait User {
       .map_async(api_helper::deserialize_body::<ApiArrayResponse<UserGroupRolesResponse>>)
       .await
       .map(|data| data.data)
+    }
+
+    async fn role_in_group(&self, group_id: i64) -> RobloxResult<UserGroupRolesResponse> {
+      let all_roles = self.group_roles().await?;
+
+      all_roles
+        .into_iter()
+        .find(|role| role.group.id == group_id)
+        .ok_or_else(|| vec![ApiError {
+          code: 1,
+          message: String::from("The user has not joined this group."),
+          user_facing_message: None
+        }])
+
     }
 }
