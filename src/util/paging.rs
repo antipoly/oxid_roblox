@@ -52,166 +52,167 @@ use futures_core::stream::Stream;
 use super::{api_helper, responses::PageResponse, RobloxResult};
 
 pub(crate) fn identity_mapper<T: Clone>(data: &T) -> T {
-    data.clone()
+  data.clone()
 }
 
 pub enum SortOrder {
-    Ascending,
-    Descending,
+  Ascending,
+  Descending,
 }
 
 impl SortOrder {
-    fn serialize(&self) -> String {
-        match self {
-            SortOrder::Ascending => "Asc",
-            SortOrder::Descending => "Desc",
-        }
-        .to_owned()
+  fn serialize(&self) -> String {
+    match self {
+      SortOrder::Ascending => "Asc",
+      SortOrder::Descending => "Desc",
     }
+    .to_owned()
+  }
 }
 
 pub enum PageSize {
-    Ten = 10,
-    TwentyFive = 25,
-    Fifty = 50,
-    OneHundred = 100,
+  Ten = 10,
+  TwentyFive = 25,
+  Fifty = 50,
+  OneHundred = 100,
 }
 
 impl PageSize {
-    fn serialize(&self) -> String {
-        match self {
-            PageSize::Ten => "10",
-            PageSize::TwentyFive => "25",
-            PageSize::Fifty => "50",
-            PageSize::OneHundred => "100",
-        }
-        .to_owned()
+  fn serialize(&self) -> String {
+    match self {
+      PageSize::Ten => "10",
+      PageSize::TwentyFive => "25",
+      PageSize::Fifty => "50",
+      PageSize::OneHundred => "100",
     }
+    .to_owned()
+  }
 }
 
 // An iterator for all pages of a PageIterator
 struct PagesIterator<T> {
-    iterator: Box<dyn BasePageIterator<T>>,
-    current_page_position: i32,
-    current_page_data: Vec<T>,
+  iterator: Box<dyn BasePageIterator<T>>,
+  current_page_position: i32,
+  current_page_data: Vec<T>,
 }
 
 impl<T: Clone> PagesIterator<T> {
-    fn new(iterator: Box<dyn BasePageIterator<T>>) -> Self {
-        Self {
-            iterator,
-            current_page_position: 0,
-            current_page_data: Vec::new(),
-        }
+  fn new(iterator: Box<dyn BasePageIterator<T>>) -> Self {
+    Self {
+      iterator,
+      current_page_position: 0,
+      current_page_data: Vec::new(),
     }
+  }
 
-    fn into_stream(mut self) -> impl Stream<Item = RobloxResult<T>> {
-        stream! {
-            loop {
-                if self.current_page_position == self.current_page_data.len() as i32 {
-                    match self.iterator.next_page().await.transpose() {
-                        Some(Ok(data)) => self.current_page_data = data,
-                        Some(Err(err)) => {
-                            yield Err(err);
-                            break
-                        },
-                        None => break,
-                    };
+  fn into_stream(mut self) -> impl Stream<Item = RobloxResult<T>> {
+    stream! {
+      loop {
+        if self.current_page_position == self.current_page_data.len() as i32 {
+          match self.iterator.next_page().await.transpose() {
+            Some(Ok(data)) => self.current_page_data = data,
+            Some(Err(err)) => {
+              yield Err(err);
+              break
+            },
+            None => break,
+          };
 
-                    if self.current_page_data.is_empty() {
-                        break;
-                    }
-                    self.current_page_position = 0;
-                }
+          if self.current_page_data.is_empty() {
+              break;
+          }
 
-                yield Ok(self.current_page_data[self.current_page_position as usize].clone());
-                self.current_page_position += 1;
-            }
+          self.current_page_position = 0;
         }
+
+        yield Ok(self.current_page_data[self.current_page_position as usize].clone());
+        self.current_page_position += 1;
+      }
     }
+  }
 }
 
 #[async_trait]
 trait BasePageIterator<T> {
-    async fn next_page(&mut self) -> RobloxResult<Option<Vec<T>>>;
+  async fn next_page(&mut self) -> RobloxResult<Option<Vec<T>>>;
 }
 
 pub struct PageIterator<T, U>
 where
-    T: serde::de::DeserializeOwned,
-    U: Clone,
+  T: serde::de::DeserializeOwned,
+  U: Clone,
 {
-    url: String,
-    mapper: fn(&T) -> U,
-    sort_order: SortOrder,
-    page_size: PageSize,
-    iteration_started: bool,
-    next_cursor: Option<String>,
-    cookie: Option<String>,
+  url: String,
+  mapper: fn(&T) -> U,
+  sort_order: SortOrder,
+  page_size: PageSize,
+  iteration_started: bool,
+  next_cursor: Option<String>,
+  cookie: Option<String>,
 }
 
 impl<T, U> PageIterator<T, U>
 where
-    T: serde::de::DeserializeOwned + 'static,
-    U: Clone + 'static,
+  T: serde::de::DeserializeOwned + 'static,
+  U: Clone + 'static,
 {
-    pub fn new(url: String, mapper: fn(&T) -> U, cookie: Option<&str>) -> Self {
-        Self {
-            url,
-            mapper,
-            sort_order: SortOrder::Ascending,
-            page_size: PageSize::Ten,
-            iteration_started: false,
-            next_cursor: None,
-            cookie: cookie.map(|s| s.to_string()),
-        }
+  pub fn new(url: String, mapper: fn(&T) -> U, cookie: Option<&str>) -> Self {
+    Self {
+      url,
+      mapper,
+      sort_order: SortOrder::Ascending,
+      page_size: PageSize::Ten,
+      iteration_started: false,
+      next_cursor: None,
+      cookie: cookie.map(|s| s.to_string()),
     }
+  }
 
-    pub fn sort_order(mut self, sort_order: SortOrder) -> Self {
-        self.sort_order = sort_order;
-        self
-    }
+  pub fn sort_order(mut self, sort_order: SortOrder) -> Self {
+    self.sort_order = sort_order;
+    self
+  }
 
-    pub fn page_size(mut self, page_size: PageSize) -> Self {
-        self.page_size = page_size;
-        self
-    }
+  pub fn page_size(mut self, page_size: PageSize) -> Self {
+    self.page_size = page_size;
+    self
+  }
 
-    pub fn into_stream(self) -> impl Stream<Item = RobloxResult<U>> {
-        PagesIterator::new(Box::new(self)).into_stream()
-    }
+  pub fn into_stream(self) -> impl Stream<Item = RobloxResult<U>> {
+    PagesIterator::new(Box::new(self)).into_stream()
+  }
 }
 
 #[async_trait]
 impl<T, U> BasePageIterator<U> for PageIterator<T, U>
 where
-    T: serde::de::DeserializeOwned,
-    U: Clone,
+  T: serde::de::DeserializeOwned,
+  U: Clone,
 {
-    async fn next_page(&mut self) -> RobloxResult<Option<Vec<U>>> {
-        // Just checking for self.next_cursor.is_none() would make single-page sized results return no data. This logic allows for fetching atleast one page
-        if self.iteration_started && self.next_cursor.is_none() {
-            return Ok(None);
-        }
-        self.iteration_started = true;
-
-        let page = api_helper::deserialize_body::<PageResponse<T>>(
-            api_helper::get(
-                format!(
-                    "{}?sortOrder={}&limit={}&cursor={}",
-                    self.url,
-                    self.sort_order.serialize(),
-                    self.page_size.serialize(),
-                    self.next_cursor.clone().unwrap_or(String::new())
-                ),
-                self.cookie.as_deref(),
-            )
-            .await?,
-        )
-        .await;
-
-        self.next_cursor = page.next_page_cursor;
-
-        Ok(Some(page.data.iter().map(self.mapper).collect()))
+  async fn next_page(&mut self) -> RobloxResult<Option<Vec<U>>> {
+    // Just checking for self.next_cursor.is_none() would make single-page sized results return no data. This logic allows for fetching atleast one page
+    if self.iteration_started && self.next_cursor.is_none() {
+      return Ok(None);
     }
+    self.iteration_started = true;
+
+    let page = api_helper::deserialize_body::<PageResponse<T>>(
+      api_helper::get(
+        format!(
+          "{}?sortOrder={}&limit={}&cursor={}",
+          self.url,
+          self.sort_order.serialize(),
+          self.page_size.serialize(),
+          self.next_cursor.clone().unwrap_or(String::new())
+        ),
+        self.cookie.as_deref(),
+      )
+      .await?,
+    )
+    .await?;
+
+    self.next_cursor = page.next_page_cursor;
+
+    Ok(Some(page.data.iter().map(self.mapper).collect()))
+  }
 }
