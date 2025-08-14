@@ -60,7 +60,7 @@ pub fn base_asset(asset_id: i64) -> BaseAsset {
     BaseAsset { id: asset_id }
 }
 
-pub async fn authenticated_user(cookie: Option<&str>) -> SkinnyUser {
+pub async fn authenticated_user(cookie: Option<&str>) -> RobloxResult<SkinnyUser> {
     api_helper::deserialize_body(
         api_helper::get("https://users.roblox.com/v1/users/authenticated".to_owned(), cookie)
             .await
