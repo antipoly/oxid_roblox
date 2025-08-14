@@ -5,6 +5,8 @@ use reqwest::{header::HeaderMap, Client, Method, Response, StatusCode};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
+use crate::util::ApiError;
+
 use super::{get_api_errors_from_response, RobloxResult};
 
 lazy_static! {
@@ -62,8 +64,12 @@ async fn request(
 
     match response.status() {
         StatusCode::OK => Ok(response),
-        StatusCode::UNAUTHORIZED => panic!(
-            "A valid .ROBLOSECURITY with sufficient permissions is required for this action."
+        StatusCode::UNAUTHORIZED => return Err(vec![
+          ApiError {
+            code: 401,
+            message: "A valid .ROBLOSECURITY with sufficient permissions is required for this action.".to_string(),
+            user_facing_message: None
+          }]
         ),
         StatusCode::FORBIDDEN => {
             // Get the x-csrf-token here because get_api_errors_from_response consumes the response
