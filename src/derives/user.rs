@@ -33,8 +33,7 @@ pub trait User {
         format!("https://premiumfeatures.roblox.com/v1/users/{}/validate-membership", self.id()),
         None,
       )
-      .await
-      .unwrap(),
+      .await?
     )
     .await
   }
