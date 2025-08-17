@@ -5,7 +5,7 @@
 //!
 //! As an example of interpretation:
 //!
-//! ```
+//! ```rust
 //! fn update_shout<'life0, 'async_trait>(
 //!     &'life0 mut self,
 //!     message: String
@@ -17,7 +17,7 @@
 //!
 //! Becomes this:
 //!
-//! ```
+//! ```rust
 //! async fn update_shout(
 //!     &mut self,
 //!     message: String

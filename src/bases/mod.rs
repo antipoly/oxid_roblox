@@ -4,7 +4,7 @@
 //! want to send any unnecessary requests to fetch the model’s data.
 //! For example, see this code:
 //!
-//! ```
+//! ```rust
 //! let user = oxid_roblox::user_from_id(1).await.unwrap();
 //! println!("Follower count: {}", user.follower_count().await.unwrap());
 //! ```
@@ -13,7 +13,7 @@
 //! the user’s data, yet we do not access any of its fields; we only use it to
 //! call a method. This is where base structures come in handy:
 //!
-//! ```
+//! ```rust
 //! let user = oxid_roblox::base_user(1);
 //! println!("Follower count: {}", user.follower_count().await.unwrap());
 //! ```

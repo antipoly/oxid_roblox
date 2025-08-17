@@ -19,7 +19,7 @@ async fn roles() {
   let cookie = env::var("COOKIE").expect("No cookie found in .env");
 
   let group = oxid_roblox::group_from_id(7103605).await.expect("Group not found");
-  let roles = group.roles(Some(&cookie)).await;
+  let roles = group.roles(Some(cookie)).await;
   assert!(roles.is_ok());
 }
 

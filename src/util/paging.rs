@@ -6,7 +6,7 @@
 //! from the `futures_util` crate, you can do many sorts of manipulations
 //! on the stream. A full example:
 //!
-//! ```
+//! ```rust
 //! use futures_util::{pin_mut, StreamExt};
 //! use oxid_roblox::derives::{GroupDerive, UserDerive};
 //!
@@ -38,7 +38,7 @@
 //! [PageIterator::page_size] method. To change the sort order, use the
 //! [PageIterator::sort_order] method. For example:
 //!
-//! ```
+//! ```rust
 //! let usernames_iterator = oxid_roblox::base_user(1)
 //!     .username_history()
 //!     .page_size(PageSize::OneHundred)
@@ -205,7 +205,7 @@ where
           self.page_size.serialize(),
           self.next_cursor.clone().unwrap_or(String::new())
         ),
-        self.cookie.as_deref(),
+        self.cookie.clone(),
       )
       .await?,
     )

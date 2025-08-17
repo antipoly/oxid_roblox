@@ -18,7 +18,7 @@ async fn auth() {
   dotenv().ok();
   let cookie = env::var("COOKIE").expect("No cookie found in .env");
 
-  let user = oxid_roblox::authenticated_user(Some(&cookie)).await;
+  let user = oxid_roblox::authenticated_user(Some(cookie)).await;
   assert!(user.is_ok());
 }
 
