@@ -32,7 +32,7 @@ pub struct Presence {
 }
 
 impl Presence {
-  pub async fn last_online(&self, cookie: Option<&str>) -> RobloxResult<DateTime<Utc>> {
+  pub async fn last_online(&self, cookie: Option<String>) -> RobloxResult<DateTime<Utc>> {
     api_helper::post(
       "https://presence.roblox.com/v1/presence/last-online".to_owned(),
       json!({

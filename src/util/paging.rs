@@ -156,7 +156,7 @@ where
   T: serde::de::DeserializeOwned + 'static,
   U: Clone + 'static,
 {
-  pub fn new(url: String, mapper: fn(&T) -> U, cookie: Option<&str>) -> Self {
+  pub fn new(url: String, mapper: fn(&T) -> U, cookie: Option<String>) -> Self {
     Self {
       url,
       mapper,

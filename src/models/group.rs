@@ -27,7 +27,7 @@ impl GroupDerive for Group {
   }
 
   /// A version of [`GroupDerive::update_shout`] that updates the shout field of this group.
-  async fn update_shout(&mut self, message: String, cookie: Option<&str>) -> RobloxResult<GroupShout> {
+  async fn update_shout(&mut self, message: String, cookie: Option<String>) -> RobloxResult<GroupShout> {
     let shout = self.update_shout(message, cookie).await?;
     self.shout = Some(shout.clone());
     Ok(shout)

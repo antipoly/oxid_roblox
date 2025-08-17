@@ -33,7 +33,7 @@ pub(crate) async fn deserialize_body<T: DeserializeOwned>(response: Response) ->
   response.json::<T>().await.map_err(|e| OxidError::Http(e))
 }
 
-async fn request(verb: Method, url: String, body: Option<Value>, roblosecurity: Option<&str>) -> RobloxResult<Response> {
+async fn request(verb: Method, url: String, body: Option<Value>, roblosecurity: Option<String>) -> RobloxResult<Response> {
   let arc_ref = HEADERS.clone();
   let headers_clone = {
     let mut headers = arc_ref.lock().unwrap();
@@ -86,18 +86,18 @@ async fn request(verb: Method, url: String, body: Option<Value>, roblosecurity: 
   }
 }
 
-pub async fn get(url: String, roblosecurity: Option<&str>) -> RobloxResult<Response> {
+pub async fn get(url: String, roblosecurity: Option<String>) -> RobloxResult<Response> {
   request(Method::GET, url, None, roblosecurity).await
 }
 
-pub async fn delete(url: String, roblosecurity: Option<&str>) -> RobloxResult<Response> {
+pub async fn delete(url: String, roblosecurity: Option<String>) -> RobloxResult<Response> {
   request(Method::DELETE, url, None, roblosecurity).await
 }
 
-pub async fn post(url: String, body: Value, roblosecurity: Option<&str>) -> RobloxResult<Response> {
+pub async fn post(url: String, body: Value, roblosecurity: Option<String>) -> RobloxResult<Response> {
   request(Method::POST, url, Some(body), roblosecurity).await
 }
 
-pub async fn patch(url: String, body: Value, roblosecurity: Option<&str>) -> RobloxResult<Response> {
+pub async fn patch(url: String, body: Value, roblosecurity: Option<String>) -> RobloxResult<Response> {
   request(Method::PATCH, url, Some(body), roblosecurity).await
 }

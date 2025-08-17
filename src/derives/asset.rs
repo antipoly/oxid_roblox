@@ -9,7 +9,7 @@ use crate::{
 pub trait Asset: Send {
   #[doc(hidden)]
   fn id(&self) -> i64;
-  async fn resale_data(&self, cookie: Option<&str>) -> RobloxResult<AssetResaleData> {
+  async fn resale_data(&self, cookie: Option<String>) -> RobloxResult<AssetResaleData> {
     api_helper::get(format!("https://economy.roblox.com/v1/assets/{}/resale-data", self.id()), cookie)
       .await
       .map_async(api_helper::deserialize_body)

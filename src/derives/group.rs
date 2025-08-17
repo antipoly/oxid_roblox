@@ -15,7 +15,7 @@ pub trait Group {
   #[doc(hidden)]
   fn id(&self) -> i64;
 
-  async fn update_shout(&mut self, message: String, cookie: Option<&str>) -> RobloxResult<GroupShout> {
+  async fn update_shout(&mut self, message: String, cookie: Option<String>) -> RobloxResult<GroupShout> {
     api_helper::patch(
       format!("https://groups.roblox.com/v1/groups/{}/status", self.id()),
       json!({ "message": message }),
@@ -26,7 +26,7 @@ pub trait Group {
     .await?
   }
 
-  async fn accept_join_request(&self, user_id: i64, cookie: Option<&str>) -> RobloxResult<()> {
+  async fn accept_join_request(&self, user_id: i64, cookie: Option<String>) -> RobloxResult<()> {
     api_helper::post(
       format!("https://groups.roblox.com/v1/groups/{}/join-requests/users/#{}", self.id(), user_id),
       json!({}),
@@ -36,7 +36,7 @@ pub trait Group {
     .map(|_| ())
   }
 
-  async fn decline_join_request(&self, user_id: i64, cookie: Option<&str>) -> RobloxResult<()> {
+  async fn decline_join_request(&self, user_id: i64, cookie: Option<String>) -> RobloxResult<()> {
     api_helper::delete(
       format!("https://groups.roblox.com/v1/groups/{}/join-requests/users/{}", self.id(), user_id),
       cookie,
@@ -45,13 +45,13 @@ pub trait Group {
     .map(|_| ())
   }
 
-  async fn kick(&self, user_id: i64, cookie: Option<&str>) -> RobloxResult<()> {
+  async fn kick(&self, user_id: i64, cookie: Option<String>) -> RobloxResult<()> {
     api_helper::delete(format!("https://groups.roblox.com/v1/groups/{}/users/{}", self.id(), user_id), cookie)
       .await
       .map(|_| ())
   }
 
-  async fn roles(&self, cookie: Option<&str>) -> RobloxResult<Vec<GroupRole>> {
+  async fn roles(&self, cookie: Option<String>) -> RobloxResult<Vec<GroupRole>> {
     api_helper::get(format!("https://groups.roblox.com/v1/groups/{}/roles", self.id()), cookie)
       .await
       .map_async(api_helper::deserialize_body::<GroupRolesResponse>)
@@ -59,7 +59,7 @@ pub trait Group {
       .map(|data| data.roles)
   }
 
-  async fn set_user_role(&self, user_id: i64, role_id: i64, cookie: Option<&str>) -> RobloxResult<()> {
+  async fn set_user_role(&self, user_id: i64, role_id: i64, cookie: Option<String>) -> RobloxResult<()> {
     api_helper::patch(
       format!("https://groups.roblox.com/v1/groups/{}/users/{}", self.id(), user_id),
       json!({ "roleId": role_id }),
@@ -69,7 +69,7 @@ pub trait Group {
     .map(|_| ())
   }
 
-  fn members(&self, cookie: Option<&str>) -> PageIterator<Member, Member> {
+  fn members(&self, cookie: Option<String>) -> PageIterator<Member, Member> {
     PageIterator::new(
       format!("https://groups.roblox.com/v1/groups/{}/users", self.id()),
       identity_mapper,
@@ -77,7 +77,7 @@ pub trait Group {
     )
   }
 
-  async fn settings(&self, cookie: Option<&str>) -> RobloxResult<GroupSettings> {
+  async fn settings(&self, cookie: Option<String>) -> RobloxResult<GroupSettings> {
     api_helper::get(format!("https://groups.roblox.com/v1/groups/{}/settings", self.id()), cookie)
       .await
       .map_async(api_helper::deserialize_body)
@@ -90,7 +90,7 @@ pub trait Group {
     are_enemies_allowed: Option<bool>,
     are_group_funds_visible: Option<bool>,
     are_group_games_visible: Option<bool>,
-    cookie: Option<&str>,
+    cookie: Option<String>,
   ) -> RobloxResult<()> {
     api_helper::patch(
       format!("https://groups.roblox.com/v1/groups/{}/settings", self.id()),
@@ -106,7 +106,7 @@ pub trait Group {
     .map(|_| ())
   }
 
-  async fn delete_all_wall_posts_from_user(&self, user_id: i64, cookie: Option<&str>) -> RobloxResult<()> {
+  async fn delete_all_wall_posts_from_user(&self, user_id: i64, cookie: Option<String>) -> RobloxResult<()> {
     api_helper::delete(
       format!("https://groups.roblox.com/v1/groups/{}/wall/users/{}/posts", self.id(), user_id),
       cookie,
@@ -115,7 +115,7 @@ pub trait Group {
     .map(|_| ())
   }
 
-  async fn delete_wall_post(&self, wall_post_id: i64, cookie: Option<&str>) -> RobloxResult<()> {
+  async fn delete_wall_post(&self, wall_post_id: i64, cookie: Option<String>) -> RobloxResult<()> {
     api_helper::delete(
       format!("https://groups.roblox.com/v1/groups/{}/wall/posts/{}", self.id(), wall_post_id),
       cookie,
@@ -124,7 +124,7 @@ pub trait Group {
     .map(|_| ())
   }
 
-  fn wall_posts(&self, cookie: Option<&str>) -> PageIterator<WallPost, WallPost> {
+  fn wall_posts(&self, cookie: Option<String>) -> PageIterator<WallPost, WallPost> {
     PageIterator::new(
       format!("https://groups.roblox.com/v2/groups/{}/wall/posts", self.id()),
       identity_mapper,
@@ -132,7 +132,7 @@ pub trait Group {
     )
   }
 
-  fn join_requests(&self, cookie: Option<&str>) -> PageIterator<JoinRequest, JoinRequest> {
+  fn join_requests(&self, cookie: Option<String>) -> PageIterator<JoinRequest, JoinRequest> {
     PageIterator::new(
       format!("https://groups.roblox.com/v1/groups/{}/join-requests", self.id()),
       identity_mapper,
@@ -140,7 +140,7 @@ pub trait Group {
     )
   }
 
-  async fn social_links(&self, cookie: Option<&str>) -> RobloxResult<Vec<SocialLink>> {
+  async fn social_links(&self, cookie: Option<String>) -> RobloxResult<Vec<SocialLink>> {
     api_helper::get(format!("https://groups.roblox.com/v1/groups/{}/social-links", self.id()), cookie)
       .await
       .map_async(api_helper::deserialize_body::<ApiArrayResponse<SocialLink>>)
@@ -148,7 +148,7 @@ pub trait Group {
       .map(|data| data.data)
   }
 
-  async fn join_request_from_user(&self, user_id: i64, cookie: Option<&str>) -> RobloxResult<Option<JoinRequest>> {
+  async fn join_request_from_user(&self, user_id: i64, cookie: Option<String>) -> RobloxResult<Option<JoinRequest>> {
     api_helper::get(
       format!("https://groups.roblox.com/v1/groups/{}/join-requests/users/{}", self.id(), user_id),
       cookie,

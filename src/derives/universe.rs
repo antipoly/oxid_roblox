@@ -15,7 +15,7 @@ pub trait Universe {
   #[doc(hidden)]
   fn id(&self) -> i64;
 
-  async fn favorite_count(&self, cookie: Option<&str>) -> RobloxResult<i64> {
+  async fn favorite_count(&self, cookie: Option<String>) -> RobloxResult<i64> {
     api_helper::get(format!("https://games.roblox.com/v1/games/{}/favorites/count", self.id()), cookie)
       .await
       .map_async(api_helper::deserialize_body::<UniverseFavoriteCountResponse>)
@@ -23,7 +23,7 @@ pub trait Universe {
       .map(|data| data.favorites_count)
   }
 
-  fn badges(&self, cookie: Option<&str>) -> PageIterator<Badge, Badge> {
+  fn badges(&self, cookie: Option<String>) -> PageIterator<Badge, Badge> {
     PageIterator::new(
       format!("https://badges.roblox.com/v1/universes/{}/badges", self.id()),
       identity_mapper,
@@ -31,14 +31,14 @@ pub trait Universe {
     )
   }
 
-  async fn live_stats(&self, cookie: Option<&str>) -> RobloxResult<UniverseLiveStats> {
+  async fn live_stats(&self, cookie: Option<String>) -> RobloxResult<UniverseLiveStats> {
     api_helper::get(format!("https://develop.roblox.com/v1/universes/{}/live-stats", self.id()), cookie)
       .await
       .map_async(api_helper::deserialize_body)
       .await?
   }
 
-  fn gamepasses(&self, cookie: Option<&str>) -> PageIterator<GamePass, GamePass> {
+  fn gamepasses(&self, cookie: Option<String>) -> PageIterator<GamePass, GamePass> {
     PageIterator::new(
       format!("https://games.roblox.com/v1/games/{}/game-passes", self.id()),
       identity_mapper,
@@ -46,7 +46,7 @@ pub trait Universe {
     )
   }
 
-  async fn social_links(&self, cookie: Option<&str>) -> RobloxResult<Vec<SocialLink>> {
+  async fn social_links(&self, cookie: Option<String>) -> RobloxResult<Vec<SocialLink>> {
     api_helper::get(format!("https://games.roblox.com/v1/games/{}/social-links/list", self.id()), cookie)
       .await
       .map_async(api_helper::deserialize_body::<ApiArrayResponse<SocialLink>>)
